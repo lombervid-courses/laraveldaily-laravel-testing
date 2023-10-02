@@ -9,6 +9,8 @@ use Tests\TestCase;
 
 class ProductTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_homepage_contains_empty_table(): void
     {
         $response = $this->get('/products');
@@ -23,6 +25,7 @@ class ProductTest extends TestCase
             'name' => 'Product 1',
             'price' => 123,
         ]);
+
         $response = $this->get('/products');
 
         $response->assertStatus(200);
