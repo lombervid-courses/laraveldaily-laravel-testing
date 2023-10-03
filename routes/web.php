@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::redirect('/', '/products');
+Route::redirect('/', '/login');
 
-Route::resource('/products', ProductController::class);
+Route::resource('/products', ProductController::class)->middleware('auth');
 
 require __DIR__ . '/auth.php';
