@@ -21,7 +21,7 @@ class ProductTest extends TestCase
 
     public function test_homepage_contains_non_empty_table(): void
     {
-        Product::create([
+        $products = Product::create([
             'name' => 'Product 1',
             'price' => 123,
         ]);
@@ -30,5 +30,7 @@ class ProductTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertDontSee(__('No products found'));
+        $response->assertSee('Product 1');
+        $response->assertViewHas('products', fn($c) => $c->contains($products));
     }
 }
