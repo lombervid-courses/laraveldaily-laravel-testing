@@ -16,6 +16,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
 
-Route::resource('/products', ProductController::class)->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::prefix('products')->controller(ProductController::class)->name('products.')->group(function () {
+        Route::get('/', 'index')->name('index');
+
+        Route::middleware('is_admin')->group(function () {
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
+    });
+});
 
 require __DIR__ . '/auth.php';
