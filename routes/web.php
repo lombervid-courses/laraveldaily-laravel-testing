@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
         Route::middleware('is_admin')->group(function () {
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
+            Route::get('/{product}/edit', 'edit')->name('edit');
+            Route::put('/{product}', 'update')->name('update');
         });
     });
 });
