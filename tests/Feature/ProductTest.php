@@ -46,6 +46,29 @@ class ProductTest extends TestCase
         $response->assertViewHas('products', fn($c) => $c->contains($products));
     }
 
+    public function test_homepage_contains_table_product(): void
+    {
+        $product = Product::create([
+            'name' => 'table',
+            'price' => 123,
+        ]);
+
+        $response = $this->actingAs($this->user)->get('/products');
+
+        $response->assertOk();
+        $response->assertSeeText($product->name);
+    }
+
+    public function test_homepage_contains_products_in_order(): void
+    {
+        $products = Product::factory(2)->create();
+
+        $response = $this->actingAs($this->user)->get('/products');
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder($products->pluck('name')->toArray());
+    }
+
     public function test_paginated_products_table_doesnt_contain_11th_record(): void
     {
         $products = Product::factory(11)->create();
