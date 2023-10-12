@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 
 class ProductController extends Controller
@@ -15,17 +19,11 @@ class ProductController extends Controller
         $this->middleware('auth')->only('destroy');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): JsonResponse
+    public function index(): ResourceCollection
     {
-        return response()->json(Product::all());
+        return ProductResource::collection(Product::all());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreProductRequest $request): JsonResponse
     {
         return response()->json(
@@ -34,9 +32,18 @@ class ProductController extends Controller
         );
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    public function show(Product $product): JsonResource
+    {
+        return new ProductResource($product);
+    }
+
+    public function update(UpdateProductRequest $request, Product $product): JsonResource
+    {
+        $product->update($request->validated());
+
+        return new ProductResource($product);
+    }
+
     public function destroy(Product $product): Response
     {
         $product->delete();
