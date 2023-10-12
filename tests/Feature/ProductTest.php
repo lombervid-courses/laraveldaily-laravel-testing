@@ -27,7 +27,7 @@ class ProductTest extends TestCase
     {
         $response = $this->actingAs($this->user)->get('/products');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertSee(__('No products found'));
     }
 
@@ -40,7 +40,7 @@ class ProductTest extends TestCase
 
         $response = $this->actingAs($this->user)->get('/products');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertDontSee(__('No products found'));
         $response->assertSee('Product 1');
         $response->assertViewHas('products', fn($c) => $c->contains($products));
@@ -76,7 +76,7 @@ class ProductTest extends TestCase
 
         $response = $this->actingAs($this->user)->get('/products');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertViewHas('products', fn($c) => ! $c->contains($lastProduct));
     }
 
@@ -84,7 +84,7 @@ class ProductTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->get('/products');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertSee('Add new product');
     }
 
@@ -92,7 +92,7 @@ class ProductTest extends TestCase
     {
         $response = $this->actingAs($this->user)->get('/products');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertDontSee('Add new product');
     }
 
@@ -100,14 +100,14 @@ class ProductTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->get('/products/create');
 
-        $response->assertStatus(200);
+        $response->assertOk();
     }
 
     public function test_non_admin_cannot_access_product_create_page(): void
     {
         $response = $this->actingAs($this->user)->get('/products/create');
 
-        $response->assertStatus(403);
+        $response->assertForbidden();
     }
 
     public function test_create_product_successful(): void
@@ -118,7 +118,6 @@ class ProductTest extends TestCase
         ];
         $response = $this->actingAs($this->admin)->post('/products', $product);
 
-        $response->assertStatus(302);
         $response->assertRedirectToRoute('products.index');
 
         $this->assertDatabaseHas('products', $product);
@@ -134,7 +133,7 @@ class ProductTest extends TestCase
 
         $response = $this->actingAs($this->admin)->get("/products/{$product->id}/edit");
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertSee("value=\"{$product->name}\"", false);
         $response->assertSee("value=\"{$product->price}\"", false);
         $response->assertViewHas('product', $product);
@@ -149,7 +148,7 @@ class ProductTest extends TestCase
             'price' => '',
         ]);
 
-        $response->assertStatus(302);
+        $response->assertRedirect();
         $response->assertInvalid(['name', 'price']);
     }
 
@@ -159,7 +158,6 @@ class ProductTest extends TestCase
 
         $response = $this->actingAs($this->admin)->delete("/products/{$product->id}");
 
-        $response->assertStatus(302);
         $response->assertRedirectToRoute('products.index');
 
         $this->assertDatabaseMissing('products', [
@@ -174,7 +172,7 @@ class ProductTest extends TestCase
 
         $response = $this->getJson('/api/products');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertJson([$product->toArray()]);
     }
 
@@ -187,7 +185,7 @@ class ProductTest extends TestCase
 
         $response = $this->postJson('/api/products', $product);
 
-        $response->assertStatus(201);
+        $response->assertCreated();
         $response->assertJson($product);
     }
 
@@ -200,8 +198,29 @@ class ProductTest extends TestCase
 
         $response = $this->postJson('/api/products', $product);
 
-        $response->assertStatus(422);
+        $response->assertUnprocessable();
         $response->assertInvalid('name');
+    }
+
+    public function test_api_product_delete_logged_in_admin(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->actingAs($this->admin)->deleteJson('/api/products/' . $product->id);
+
+        $response->assertNoContent();
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        $this->assertDatabaseCount('products', 0);
+    }
+
+    public function test_api_product_delete_restricted_by_auth(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->deleteJson('/api/products/' . $product->id);
+
+        $response->assertUnauthorized();
     }
 
     private function createUser(bool $isAdmin = false): User

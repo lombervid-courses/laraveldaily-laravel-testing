@@ -26,7 +26,6 @@ class AuthTest extends TestCase
             'password' => $password,
         ]);
 
-        $response->assertStatus(302);
         $response->assertRedirect('/products');
 
     }
@@ -35,7 +34,6 @@ class AuthTest extends TestCase
     {
         $response = $this->get('/products');
 
-        $response->assertStatus(302);
         $response->assertRedirect('/login');
     }
 }
