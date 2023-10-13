@@ -132,6 +132,12 @@ class ProductTest extends TestCase
     public function test_product_edit_contains_correct_values(): void
     {
         $product = Product::factory()->create();
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+        ]);
+        $this->assertModelExists($product);
 
         $response = $this->actingAs($this->admin)->get("/products/{$product->id}/edit");
 
@@ -154,7 +160,7 @@ class ProductTest extends TestCase
         $response->assertInvalid(['name', 'price']);
     }
 
-    public function test_product_delete_successful()
+    public function test_product_delete_successful(): void
     {
         $product = Product::factory()->create();
 
@@ -165,6 +171,7 @@ class ProductTest extends TestCase
         $this->assertDatabaseMissing('products', [
             'id' => $product->id,
         ]);
+        $this->assertModelMissing($product);
         $this->assertDatabaseCount('products', 0);
     }
 
@@ -283,6 +290,14 @@ class ProductTest extends TestCase
         } catch (\Throwable $th) {
             $this->assertInstanceOf(NumberFormatException::class, $th);
         }
+    }
+
+    public function test_product_download_success(): void
+    {
+        $response = $this->get('/download');
+
+        $response->assertOk();
+        $response->assertHeader('Content-Disposition', 'attachment; filename=product-specification.pdf');
     }
 
     private function createUser(bool $isAdmin = false): User

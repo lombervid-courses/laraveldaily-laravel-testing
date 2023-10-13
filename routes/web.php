@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::redirect('/', '/login');
+Route::get('/download', [ProductController::class, 'download']);
 
 Route::middleware('auth')->group(function () {
     Route::prefix('products')->controller(ProductController::class)->name('products.')->group(function () {
